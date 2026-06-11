@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Admin Panel | Njala Smart Campus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #0F3B2C;
+            --primary-light: #1B5E3F;
+            --secondary: #D4AF37;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #27ae60;
+            --dark: #1E2A2E;
+            --light: #F8F9FA;
+            --white: #FFFFFF;
+            --gray: #6C757D;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --radius: 16px;
+        }
+        body.dark {
+            --light: #121826;
+            --white: #1E293B;
+            --dark: #EDF2F7;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            transition: all 0.3s;
+        }
+        .admin-container { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 280px;
+            background: var(--white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 24px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .avatar {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 1.8rem;
+            color: white;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 24px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .sidebar-nav a:hover, .sidebar-nav a.active {
+            background: var(--primary);
+            color: white;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 24px;
+        }
+        .top-bar {
+            background: var(--white);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .table-container {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 20px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-approved { background: #27ae60; color: white; }
+        .status-pending { background: #f39c12; color: white; }
+        .status-rejected { background: #e74c3c; color: white; }
+        .btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            font-weight: 500;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .modal {
+            display: none;
+            position: fixed;
+            top:0; left:0;
+            width:100%; height:100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .pending-row {
+            background: #fff3e0;
+            border-left: 4px solid var(--warning);
+        }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="admin-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="avatar"><i class="fas fa-user-shield"></i></div>
+            <h3>Admin Panel</h3>
+            <p>Njala Smart Campus</p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="active" data-page="overview"><i class="fas fa-tachometer-alt"></i> Overview</a>
+            <a href="#" data-page="students"><i class="fas fa-users"></i> Student Management</a>
+            <a href="#" data-page="payments"><i class="fas fa-receipt"></i> Payment Management</a>
+            <a href="#" data-page="courses"><i class="fas fa-book"></i> Course Management</a>
+            <a href="#" data-page="announcements"><i class="fas fa-bullhorn"></i> Announcements</a>
+            <a href="#" data-page="chat-control"><i class="fas fa-comments"></i> Njala Connect</a>
+            <a href="#" data-page="sos"><i class="fas fa-exclamation-triangle"></i> SOS Alerts</a>
+            <a href="#" data-page="lostfound"><i class="fas fa-search"></i> Lost & Found</a>
+            <a href="#" data-page="reports"><i class="fas fa-chart-line"></i> Reports</a>
+            <a href="#" data-page="roles"><i class="fas fa-user-tag"></i> User Roles</a>
+            <a href="#" data-page="settings"><i class="fas fa-cog"></i> System Settings</a>
+            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="top-bar">
+            <button id="mobileToggle" style="background:none; border:none; font-size:1.2rem;">☰</button>
+            <div><i class="fas fa-bell"></i> <span id="adminName">Admin</span></div>
+        </div>
+        <div id="pageContent"></div>
+    </main>
+</div>
+
+<!-- Confirm Approval Modal -->
+<div id="approveModal" class="modal">
+    <div class="modal-content">
+        <h3>Approve Payment</h3>
+        <p>Are you sure you want to approve this payment?</p>
+        <p><strong>Amount:</strong> Le <span id="approveAmount"></span></p>
+        <button id="confirmApproveBtn" class="btn btn-success">Yes, Approve</button>
+        <button id="cancelApproveBtn" class="btn btn-danger">Cancel</button>
+    </div>
+</div>
+
+<script>
+    // ========== AUTH ==========
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!token || !user || user.role !== 'admin') {
+        window.location.href = 'index.html';
+    }
+    document.getElementById('adminName').innerText = user.full_name || 'Admin';
+
+    const API_BASE = '/api';
+    let currentPage = 'overview';
+    let socket = io();
+    let pendingApproveId = null;
+
+    function showNotification(msg, type='success') {
+        const toast = document.createElement('div');
+        toast.innerText = msg;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.background = type==='error'?'#e74c3c':'#27ae60';
+        toast.style.color='white';
+        toast.style.padding='12px 20px';
+        toast.style.borderRadius='40px';
+        toast.style.zIndex='9999';
+        document.body.appendChild(toast);
+        setTimeout(()=>toast.remove(),3000);
+    }
+
+    async function apiFetch(url, options={}) {
+        const res = await fetch(API_BASE+url, {
+            ...options,
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json', ...options.headers }
+        });
+        if(!res.ok) throw new Error(await res.text());
+        return res.json();
+    }
+
+    // ========== OVERVIEW ==========
+    async function renderOverview() {
+        let stats = { totalStudents:0, totalPayments:0, pendingPayments:0, activeUsers:0, sosCount:0 };
+        let recentPayments = [], recentRegistrations = [];
+        try {
+            const students = await apiFetch('/admin/students');
+            stats.totalStudents = students.length;
+            const payments = await apiFetch('/clearance/status');
+            stats.totalPayments = payments.length;
+            stats.pendingPayments = payments.filter(p=>p.status==='pending').length;
+            stats.activeUsers = students.filter(s=>s.is_active !== false).length;
+            const sos = await apiFetch('/admin/sos/alerts');
+            stats.sosCount = sos.length;
+            recentPayments = payments.slice(0,5);
+            recentRegistrations = students.slice(0,5);
+        } catch(e) { console.warn(e); }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-users"></i><h3>${stats.totalStudents}</h3><p>Total Students</p></div>
+                <div class="stat-card"><i class="fas fa-receipt"></i><h3>${stats.totalPayments}</h3><p>Payments</p></div>
+                <div class="stat-card"><i class="fas fa-clock"></i><h3>${stats.pendingPayments}</h3><p>Pending Approval</p></div>
+                <div class="stat-card"><i class="fas fa-exclamation-triangle"></i><h3>${stats.sosCount}</h3><p>SOS Alerts</p></div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                <div class="table-container"><h3>Recent Payments</h3><table><tr><th>Student</th><th>Amount</th><th>Status</th></tr>${recentPayments.map(p=>`<tr><td>${p.student_id||'N/A'}</td><td>Le ${p.amount}</td><td><span class="status-badge status-${p.status}">${p.status}</span></td></tr>`).join('')} </table></div>
+                <div class="table-container"><h3>Recent Registrations</h3><table><tr><th>Name</th><th>Matric</th></tr>${recentRegistrations.map(s=>`<tr><td>${s.full_name}</td><td>${s.matric_number}</td></tr>`).join('')} </table></div>
+            </div>
+        `;
+    }
+
+    // ========== STUDENT MANAGEMENT ==========
+    async function renderStudents() {
+        let students = [];
+        try {
+            students = await apiFetch('/admin/students');
+        } catch(e) { students = []; }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container">
+                <h3>Student Management <button class="btn btn-primary" id="addStudentBtn" style="float:right;">+ Add Student</button></h3>
+                <input type="text" id="searchStudent" placeholder="Search by name/matric" style="margin:10px 0; width:300px;">
+                <table id="studentsTable"><thead><tr><th>Name</th><th>Matric</th><th>Dept</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table>
+            </div>
+        `;
+        const tbody = document.querySelector('#studentsTable tbody');
+        tbody.innerHTML = students.map(s => `
+            <tr>
+                <td>${s.full_name}</td><td>${s.matric_number}</td><td>${s.department}</td>
+                <td><span class="status-badge status-${s.is_verified ? 'approved':'pending'}">${s.is_verified ? 'Active':'Inactive'}</span></td>
+                <td><button class="btn btn-sm btn-primary" onclick="toggleStudentStatus(${s.id})">Toggle</button> <button class="btn btn-sm btn-danger" onclick="deleteStudent(${s.id})">Delete</button></td>
+            </tr>
+        `).join('');
+        document.getElementById('searchStudent').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = students.filter(s => s.full_name.toLowerCase().includes(term) || s.matric_number.includes(term));
+            tbody.innerHTML = filtered.map(s => `<tr><td>${s.full_name}</td><td>${s.matric_number}</td><td>${s.department}</td><td><span class="status-badge status-${s.is_verified ? 'approved':'pending'}">${s.is_verified ? 'Active':'Inactive'}</span></td><td><button class="btn btn-sm btn-primary" onclick="toggleStudentStatus(${s.id})">Toggle</button> <button class="btn btn-sm btn-danger" onclick="deleteStudent(${s.id})">Delete</button></td></tr>`).join('');
+        });
+    }
+    window.toggleStudentStatus = async (id) => {
+        await apiFetch(`/admin/students/${id}/toggle`, { method:'PATCH' });
+        renderStudents();
+    };
+    window.deleteStudent = async (id) => {
+        if(confirm('Delete this student?')) await apiFetch(`/admin/students/${id}`, { method:'DELETE' });
+        renderStudents();
+    };
+
+    // ========== PAYMENT MANAGEMENT (ENHANCED) ==========
+    async function renderPayments() {
+        let payments = [];
+        try {
+            payments = await apiFetch('/clearance/status');
+        } catch(e) {}
+        const pending = payments.filter(p => p.status === 'pending');
+        const processed = payments.filter(p => p.status !== 'pending');
+        
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container">
+                <h3>✅ Pending Approvals <span style="background:#f39c12; color:white; padding:2px 8px; border-radius:20px; font-size:12px; margin-left:10px;">${pending.length} waiting</span></h3>
+                <table>
+                    <thead><tr><th>Student ID</th><th>Amount (Le)</th><th>Transaction ID</th><th>Proof</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${pending.map(p => `
+                            <tr class="pending-row" style="background:#fff3e0;">
+                                <td>${p.student_id}</td>
+                                <td><strong>${p.amount.toLocaleString()}</strong></td>
+                                <td>${p.transaction_id}</td>
+                                <td><a href="${p.payment_proof}" target="_blank" class="btn btn-sm btn-primary">View Receipt</a></td>
+                                <td><span class="status-badge status-pending">PENDING</span></td>
+                                <td>
+                                    <button class="btn-sm btn-success" onclick="openApproveModal(${p.id}, ${p.amount})" style="background:#27ae60; color:white; margin-right:5px;">✅ Approve</button>
+                                    <button class="btn-sm btn-danger" onclick="rejectPayment(${p.id})" style="background:#e74c3c; color:white;">❌ Reject</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                        ${pending.length === 0 ? '<tr><td colspan="6" style="text-align:center;">No pending payments 🎉</td></tr>' : ''}
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-container">
+                <h3>📋 Processed Payments</h3>
+                <table>
+                    <thead><tr><th>Student ID</th><th>Amount</th><th>Transaction</th><th>Status</th></tr></thead>
+                    <tbody>
+                        ${processed.map(p => `
+                            <tr>
+                                <td>${p.student_id}</td>
+                                <td>Le ${p.amount}</td>
+                                <td>${p.transaction_id}</td>
+                                <td><span class="status-badge status-${p.status}">${p.status.toUpperCase()}</span></td>
+                            </tr>
+                        `).join('')}
+                        ${processed.length === 0 ? '<tr><td colspan="4">No processed payments yet.</td></tr>' : ''}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Modal functions for approval
+    window.openApproveModal = (id, amount) => {
+        pendingApproveId = id;
+        document.getElementById('approveAmount').innerText = amount.toLocaleString();
+        document.getElementById('approveModal').style.display = 'flex';
+    };
+    document.getElementById('confirmApproveBtn').onclick = async () => {
+        if (pendingApproveId) {
+            await apiFetch(`/admin/payments/${pendingApproveId}/approve`, { method:'PATCH' });
+            showNotification('Payment approved! Student notified instantly.');
+            document.getElementById('approveModal').style.display = 'none';
+            pendingApproveId = null;
+            renderPayments();
+            // Also refresh overview stats if needed
+            if (currentPage === 'overview') renderOverview();
+        }
+    };
+    document.getElementById('cancelApproveBtn').onclick = () => {
+        document.getElementById('approveModal').style.display = 'none';
+        pendingApproveId = null;
+    };
+
+    window.rejectPayment = async (id) => {
+        const reason = prompt('Reason for rejection:');
+        if (reason) {
+            await apiFetch(`/admin/payments/${id}/reject`, { method:'PATCH', body:JSON.stringify({ reason }) });
+            showNotification('Payment rejected.', 'error');
+            renderPayments();
+        }
+    };
+
+    // ========== COURSE MANAGEMENT ==========
+    async function renderCourses() {
+        let courses = [];
+        try {
+            courses = await apiFetch('/registration/courses');
+        } catch(e) { courses = []; }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container">
+                <h3>Course Management <button class="btn btn-primary" id="addCourseBtn" style="float:right;">+ Add Course</button></h3>
+                <table><thead><tr><th>Code</th><th>Title</th><th>Credits</th><th>Department</th><th>Actions</th></tr></thead><tbody>
+                ${courses.map(c => `<tr><td>${c.course_code}</td><td>${c.course_name}</td><td>${c.credits}</td><td>${c.department || 'General'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteCourse(${c.id})">Delete</button></td></tr>`).join('')}
+                </tbody></table>
+            </div>
+        `;
+        document.getElementById('addCourseBtn').onclick = () => {
+            const code = prompt('Course code');
+            const name = prompt('Course name');
+            const credits = prompt('Credits');
+            if(code && name) apiFetch('/registration/courses', { method:'POST', body:JSON.stringify({ code, name, credits }) }).then(()=>renderCourses());
+        };
+    }
+    window.deleteCourse = async (id) => {
+        if(confirm('Delete course?')) await apiFetch(`/registration/courses/${id}`, { method:'DELETE' });
+        renderCourses();
+    };
+
+    // ========== ANNOUNCEMENTS ==========
+    async function renderAnnouncements() {
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container">
+                <h3>Send Announcement</h3>
+                <form id="announceForm"><input type="text" id="annTitle" placeholder="Title" required><textarea id="annContent" placeholder="Message" rows="3"></textarea><select id="annTarget"><option value="all">All Students</option><option value="dept">Specific Department</option></select><div id="deptSelect" style="display:none;"><select id="annDept"><option>Computer Science</option><option>Agriculture</option></select></div><button type="submit" class="btn btn-primary">Broadcast</button></form>
+                <div id="announcementList"></div>
+            </div>
+        `;
+        document.getElementById('annTarget').addEventListener('change', (e) => {
+            document.getElementById('deptSelect').style.display = e.target.value === 'dept' ? 'block' : 'none';
+        });
+        document.getElementById('announceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('annTitle').value;
+            const content = document.getElementById('annContent').value;
+            const target = document.getElementById('annTarget').value;
+            const department = target === 'dept' ? document.getElementById('annDept').value : null;
+            await apiFetch('/admin/announcements', { method:'POST', body:JSON.stringify({ title, content, target, department }) });
+            showNotification('Announcement sent');
+            renderAnnouncements();
+        });
+        let announcements = [];
+        try { announcements = await apiFetch('/announcements'); } catch(e) {}
+        const listDiv = document.getElementById('announcementList');
+        listDiv.innerHTML = `<h4>Previous Announcements</h4>${announcements.map(a=>`<div class="receipt-item"><strong>${a.title}</strong><br>${a.content}<br><small>${new Date(a.created_at).toLocaleString()}</small></div>`).join('')}`;
+    }
+
+    // ========== CHAT CONTROL ==========
+    async function renderChatControl() {
+        let messages = [];
+        try { messages = await apiFetch('/admin/messages'); } catch(e) { messages = []; }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container">
+                <h3>Njala Connect Moderation</h3>
+                <table><thead><tr><th>From</th><th>Message</th><th>Time</th><th>Action</th></tr></thead><tbody>
+                ${messages.map(m => `<tr><td>${m.fromUser || m.from}</td><td>${m.text}</td><td>${new Date(m.timestamp).toLocaleString()}</td><td><button class="btn btn-sm btn-danger" onclick="removeMessage(${m.id})">Remove</button></td></tr>`).join('')}
+                </tbody></table>
+            </div>
+        `;
+    }
+    window.removeMessage = async (id) => {
+        await apiFetch(`/admin/messages/${id}`, { method:'DELETE' });
+        renderChatControl();
+    };
+
+    // ========== SOS ALERTS ==========
+    async function renderSOS() {
+        let alerts = [];
+        try { alerts = await apiFetch('/admin/sos/alerts'); } catch(e) { alerts = []; }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container">
+                <h3>SOS Emergency Alerts</h3>
+                <table><thead><tr><th>Student</th><th>Location</th><th>Description</th><th>Time</th><th>Status</th><th>Action</th></tr></thead><tbody>
+                ${alerts.map(a => `<tr><td>${a.student_name}</td><td>${a.location||'N/A'}</td><td>${a.description}</td><td>${new Date(a.created_at).toLocaleString()}</td><td><span class="status-badge status-${a.status}">${a.status}</span></td><td><button class="btn btn-sm btn-primary" onclick="updateSOSStatus(${a.id})">Mark Responded</button></td></tr>`).join('')}
+                </tbody></table>
+            </div>
+        `;
+    }
+    window.updateSOSStatus = async (id) => {
+        await apiFetch(`/admin/sos/${id}/respond`, { method:'PATCH' });
+        renderSOS();
+    };
+
+    // ========== LOST & FOUND ==========
+    async function renderLostFound() {
+        let items = [];
+        try { items = await apiFetch('/lostfound'); } catch(e) { items = []; }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container">
+                <h3>Lost & Found Management</h3>
+                <table><thead><tr><th>Item</th><th>Type</th><th>Location</th><th>Status</th><th>Action</th></tr></thead><tbody>
+                ${items.map(i => `<tr><td>${i.item}</td><td>${i.type}</td><td>${i.location}</td><td><span class="status-badge">${i.status||'active'}</span></td><td><button class="btn btn-sm btn-primary" onclick="toggleItemStatus(${i.id})">Mark Claimed</button></td></tr>`).join('')}
+                </tbody></table>
+            </div>
+        `;
+    }
+    window.toggleItemStatus = async (id) => {
+        await apiFetch(`/admin/lostfound/${id}/claim`, { method:'PATCH' });
+        renderLostFound();
+    };
+
+    // ========== REPORTS ==========
+    function renderReports() {
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container"><h3>Export Reports</h3>
+            <button class="btn btn-primary" id="exportPayments">Export Payments (CSV)</button>
+            <button class="btn btn-primary" id="exportStudents">Export Students (CSV)</button>
+            </div>
+        `;
+        document.getElementById('exportPayments').onclick = () => alert('Export payments CSV (implement backend)');
+        document.getElementById('exportStudents').onclick = () => alert('Export students CSV');
+    }
+
+    // ========== USER ROLES ==========
+    async function renderRoles() {
+        let users = [];
+        try { users = await apiFetch('/admin/users'); } catch(e) { users = []; }
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container"><h3>User Roles Management</h3>
+            <table><thead><tr><th>Name</th><th>Email</th><th>Current Role</th><th>Change Role</th></tr></thead><tbody>
+            ${users.map(u => `<tr><td>${u.full_name}</td><td>${u.email}</td><td>${u.role}</td><td><select onchange="changeRole(${u.id}, this.value)"><option value="student">Student</option><option value="lecturer">Lecturer</option><option value="admin">Admin</option></select></td></tr>`).join('')}
+            </tbody></table></div>
+        `;
+    }
+    window.changeRole = async (userId, newRole) => {
+        await apiFetch(`/admin/users/${userId}/role`, { method:'PATCH', body:JSON.stringify({ role: newRole }) });
+        showNotification('Role updated');
+        renderRoles();
+    };
+
+    // ========== SYSTEM SETTINGS ==========
+    function renderSettings() {
+        document.getElementById('pageContent').innerHTML = `
+            <div class="table-container"><h3>System Settings</h3>
+            <form id="settingsForm"><label>Default Fee Amount (Le)</label><input type="number" id="defaultFee" value="4200000"><label>Academic Session</label><input type="text" id="session" placeholder="2024/2025"><label>Enable Njala Connect</label><select id="enableChat"><option>Yes</option><option>No</option></select><button type="submit" class="btn btn-primary">Save</button></form>
+            </div>
+        `;
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fee = document.getElementById('defaultFee').value;
+            const session = document.getElementById('session').value;
+            const chat = document.getElementById('enableChat').value === 'Yes';
+            await apiFetch('/admin/settings', { method:'POST', body:JSON.stringify({ defaultFee: fee, academicSession: session, enableNjalaConnect: chat }) });
+            showNotification('Settings saved');
+        });
+    }
+
+    // ========== LOGOUT ==========
+    document.getElementById('logoutBtn').onclick = () => {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    };
+
+    // ========== PAGE ROUTING ==========
+    window.loadPage = async (page) => {
+        currentPage = page;
+        document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+        document.querySelector(`.sidebar-nav a[data-page="${page}"]`).classList.add('active');
+        if (page === 'overview') await renderOverview();
+        else if (page === 'students') await renderStudents();
+        else if (page === 'payments') await renderPayments();
+        else if (page === 'courses') await renderCourses();
+        else if (page === 'announcements') await renderAnnouncements();
+        else if (page === 'chat-control') await renderChatControl();
+        else if (page === 'sos') await renderSOS();
+        else if (page === 'lostfound') await renderLostFound();
+        else if (page === 'reports') renderReports();
+        else if (page === 'roles') await renderRoles();
+        else if (page === 'settings') renderSettings();
+    };
+
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.dataset.page;
+            if (page) loadPage(page);
+        });
+    });
+    document.getElementById('mobileToggle').onclick = () => document.querySelector('.sidebar').classList.toggle('active');
+
+    // real‑time socket for payment updates (optional)
+    socket.on('payment_updated', () => {
+        if (currentPage === 'payments') renderPayments();
+        if (currentPage === 'overview') renderOverview();
+    });
+
+    loadPage('overview');
+</script>
+</body>
+</html>

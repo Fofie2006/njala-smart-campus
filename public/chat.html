@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Njala Connect – Campus Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0F3B2C;
+            --primary-light: #1B5E3F;
+            --secondary: #D4AF37;
+            --light: #F8F9FA;
+            --white: #FFFFFF;
+            --dark: #1E2A2E;
+            --gray: #6C757D;
+            --border: #e5e7eb;
+            --shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        body.dark {
+            --light: #121826;
+            --white: #1E293B;
+            --dark: #EDF2F7;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            background: var(--light);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .chat-item:hover {
+            background: var(--light);
+        }
+
+        .chat-item.active {
+            background: rgba(15, 59, 44, 0.1);
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: #4caf50;
+            border-radius: 50%;
+            border: 2px solid var(--white);
+        }
+
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .chat-preview {
+            font-size: 12px;
+            color: var(--gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-time {
+            font-size: 10px;
+            color: var(--gray);
+        }
+
+        .unread-badge {
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 10px;
+            margin-left: 8px;
+        }
+
+        /* Main Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--white);
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-contact {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-contact .avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .contact-name {
+            font-weight: 600;
+        }
+
+        .contact-status {
+            font-size: 11px;
+            color: var(--gray);
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-group.mine {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 8px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+
+        .message-group:not(.mine) .message-bubble {
+            background: var(--light);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-group.mine .message-bubble {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-meta {
+            font-size: 10px;
+            margin-top: 4px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .message-status {
+            font-size: 10px;
+        }
+
+        .message-group.mine .message-status {
+            text-align: right;
+        }
+
+        .input-area {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            background: var(--light);
+            font-size: 14px;
+        }
+
+        .input-area button {
+            background: var(--primary);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+        }
+
+        .typing-indicator {
+            font-size: 12px;
+            color: var(--gray);
+            padding: 4px 20px;
+        }
+
+        /* Modal for create group */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-comments"></i> Njala Connect</h2>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search chats...">
+        </div>
+        <div class="tabs">
+            <div class="tab active" data-tab="chats">Chats</div>
+            <div class="tab" data-tab="groups">Groups</div>
+        </div>
+        <div class="chat-list" id="chatList"></div>
+        <div style="padding: 12px; border-top: 1px solid var(--border);">
+            <button id="createGroupBtn" class="btn-primary" style="width:100%">+ Create Group</button>
+        </div>
+    </div>
+
+    <div class="chat-area">
+        <div class="chat-header">
+            <div class="chat-contact" id="chatContact">
+                <div class="avatar" id="chatAvatar">👥</div>
+                <div>
+                    <div class="contact-name" id="chatName">Select a chat</div>
+                    <div class="contact-status" id="chatStatus">Click on a conversation</div>
+                </div>
+            </div>
+            <div>
+                <button id="infoBtn" class="btn-primary" style="background: none; color: var(--dark);">ℹ️</button>
+            </div>
+        </div>
+        <div class="messages-container" id="messagesContainer">
+            <div style="text-align: center; color: var(--gray); margin-top: 40px;">Select a chat to start messaging</div>
+        </div>
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">Someone is typing...</div>
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Type a message...">
+            <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div id="groupModal" class="modal">
+        <div class="modal-content">
+            <h3>Create New Group</h3>
+            <input type="text" id="groupName" placeholder="Group name">
+            <select id="groupMembers" multiple size="5"></select>
+            <button id="confirmGroupBtn" class="btn-primary">Create</button>
+            <button id="closeModalBtn" style="margin-top: 8px;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // ========== AUTH ==========
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/';
+
+        let currentUser = JSON.parse(localStorage.getItem('user'));
+        let socket = io();
+
+        // State
+        let allUsers = [];
+        let groups = [];
+        let currentChat = null; // { type: 'user', id, name, avatar } or { type: 'group', id, name }
+        let messages = [];
+        let onlineUsers = {};
+
+        // DOM elements
+        const chatListDiv = document.getElementById('chatList');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatNameSpan = document.getElementById('chatName');
+        const chatStatusSpan = document.getElementById('chatStatus');
+        const chatAvatar = document.getElementById('chatAvatar');
+        const searchInput = document.getElementById('searchInput');
+        let activeTab = 'chats';
+
+        // Helper functions
+        function showNotification(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.innerText = msg;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
+            toast.style.color = 'white';
+            toast.style.padding = '10px 20px';
+            toast.style.borderRadius = '40px';
+            toast.style.zIndex = '9999';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function apiFetch(url, options = {}) {
+            const res = await fetch('/api' + url, {
+                ...options,
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', ...options.headers }
+            });
+            if (!res.ok) throw new Error(await res.text());
+            return res.json();
+        }
+
+        // Load data
+        async function loadUsers() {
+            try {
+                allUsers = await apiFetch('/users');
+            } catch(e) { allUsers = []; }
+        }
+
+        async function loadGroups() {
+            try {
+                groups = await apiFetch('/groups');
+            } catch(e) { groups = []; }
+        }
+
+        async function loadMessages(chat) {
+            if (!chat) return;
+            let url = '';
+            if (chat.type === 'user') url = `/messages/${chat.id}`;
+            else url = `/group-messages/${chat.id}`;
+            try {
+                messages = await apiFetch(url);
+                renderMessages();
+                markMessagesAsRead();
+            } catch(e) { messages = []; renderMessages(); }
+        }
+
+        function renderMessages() {
+            if (!messagesContainer) return;
+            if (messages.length === 0) {
+                messagesContainer.innerHTML = '<div style="text-align: center; color: var(--gray); margin-top: 40px;">No messages yet. Say hello!</div>';
+                return;
+            }
+            messagesContainer.innerHTML = messages.map(msg => {
+                const isMine = msg.from === currentUser.id;
+                const sender = allUsers.find(u => u.id === msg.from);
+                const senderName = sender ? sender.full_name : 'Unknown';
+                const statusIcon = isMine ? (msg.status === 'read' ? '✓✓' : (msg.status === 'delivered' ? '✓✓' : '✓')) : '';
+                return `
+                    <div class="message-group ${isMine ? 'mine' : ''}">
+                        <div class="message-bubble">
+                            ${msg.text}
+                            <div class="message-meta">
+                                <span>${new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                ${isMine ? `<span class="message-status">${statusIcon}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function markMessagesAsRead() {
+            if (!currentChat) return;
+            // Emit read receipt via socket
+            socket.emit('mark-read', {
+                chatId: currentChat.id,
+                chatType: currentChat.type,
+                userId: currentUser.id
+            });
+        }
+
+        // Send message
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text || !currentChat) return;
+            messageInput.value = '';
+
+            const tempMsg = {
+                id: Date.now(),
+                from: currentUser.id,
+                to: currentChat.type === 'user' ? currentChat.id : null,
+                groupId: currentChat.type === 'group' ? currentChat.id : null,
+                text,
+                timestamp: new Date().toISOString(),
+                status: 'sent'
+            };
+            messages.push(tempMsg);
+            renderMessages();
+
+            if (currentChat.type === 'user') {
+                socket.emit('private-message', {
+                    toUserId: currentChat.id,
+                    fromUserId: currentUser.id,
+                    message: text
+                });
+            } else {
+                socket.emit('group-message', {
+                    groupId: currentChat.id,
+                    fromUserId: currentUser.id,
+                    message: text
+                });
+            }
+        }
+
+        // Render chat list (users and groups)
+        async function renderChatList() {
+            await loadUsers();
+            await loadGroups();
+            const searchTerm = searchInput.value.toLowerCase();
+            let items = [];
+            if (activeTab === 'chats') {
+                items = allUsers.filter(u => u.full_name.toLowerCase().includes(searchTerm)).map(u => ({
+                    type: 'user',
+                    id: u.id,
+                    name: u.full_name,
+                    avatar: u.full_name.charAt(0),
+                    online: onlineUsers[u.id],
+                    lastMessage: u.lastMessage || 'Click to chat',
+                    time: u.lastMessageTime || ''
+                }));
+            } else {
+                items = groups.filter(g => g.name.toLowerCase().includes(searchTerm)).map(g => ({
+                    type: 'group',
+                    id: g.id,
+                    name: g.name,
+                    avatar: '👥',
+                    memberCount: g.members?.length || 0,
+                    lastMessage: g.lastMessage || 'No messages yet'
+                }));
+            }
+            chatListDiv.innerHTML = items.map(item => `
+                <div class="chat-item ${currentChat && currentChat.type === item.type && currentChat.id == item.id ? 'active' : ''}" 
+                     data-type="${item.type}" data-id="${item.id}" data-name="${item.name}" data-avatar="${item.avatar}">
+                    <div class="avatar">
+                        ${item.avatar === '👥' ? '👥' : item.avatar}
+                        ${item.type === 'user' && item.online ? '<span class="online-dot"></span>' : ''}
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(item.name)}</div>
+                        <div class="chat-preview">${escapeHtml(item.lastMessage)}</div>
+                    </div>
+                    <div class="chat-time">${item.time || ''}</div>
+                </div>
+            `).join('');
+            attachChatClickHandlers();
+        }
+
+        function attachChatClickHandlers() {
+            document.querySelectorAll('.chat-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const type = el.dataset.type;
+                    const id = type === 'user' ? parseInt(el.dataset.id) : el.dataset.id;
+                    const name = el.dataset.name;
+                    const avatar = el.dataset.avatar;
+                    openChat({ type, id, name, avatar });
+                });
+            });
+        }
+
+        async function openChat(chat) {
+            currentChat = chat;
+            chatNameSpan.innerText = chat.name;
+            chatAvatar.innerText = chat.avatar;
+            if (chat.type === 'user') {
+                const user = allUsers.find(u => u.id == chat.id);
+                chatStatusSpan.innerText = onlineUsers[chat.id] ? 'Online' : 'Offline';
+            } else {
+                chatStatusSpan.innerText = 'Group chat';
+            }
+            await loadMessages(currentChat);
+            renderChatList(); // re-render to highlight active
+        }
+
+        // Socket events
+        function initSocket() {
+            socket.emit('user-online', currentUser.id);
+
+            socket.on('private-message', async (data) => {
+                if (currentChat && currentChat.type === 'user' && currentChat.id === data.fromUserId) {
+                    await loadMessages(currentChat);
+                } else {
+                    // update unread badge (not implemented for simplicity)
+                }
+                renderChatList();
+                showNotification(`New message from ${data.fromUserId}`);
+            });
+
+            socket.on('group-message', async (data) => {
+                if (currentChat && currentChat.type === 'group' && currentChat.id == data.groupId) {
+                    await loadMessages(currentChat);
+                }
+                renderChatList();
+            });
+
+            socket.on('user-status', ({ userId, status }) => {
+                onlineUsers[userId] = (status === 'online');
+                renderChatList();
+                if (currentChat && currentChat.type === 'user' && currentChat.id === userId) {
+                    chatStatusSpan.innerText = onlineUsers[userId] ? 'Online' : 'Offline';
+                }
+            });
+
+            socket.on('message-status', ({ messageId, status }) => {
+                const msg = messages.find(m => m.id == messageId);
+                if (msg) msg.status = status;
+                renderMessages();
+            });
+        }
+
+        // Group creation
+        async function showCreateGroupModal() {
+            await loadUsers();
+            const select = document.getElementById('groupMembers');
+            select.innerHTML = allUsers.filter(u => u.id !== currentUser.id).map(u => `<option value="${u.id}">${u.full_name}</option>`).join('');
+            document.getElementById('groupModal').style.display = 'flex';
+        }
+
+        document.getElementById('createGroupBtn').onclick = showCreateGroupModal;
+        document.getElementById('confirmGroupBtn').onclick = async () => {
+            const name = document.getElementById('groupName').value.trim();
+            const memberIds = Array.from(document.getElementById('groupMembers').selectedOptions).map(opt => parseInt(opt.value));
+            if (!name) { showNotification('Group name required', 'error'); return; }
+            try {
+                await apiFetch('/groups', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, memberIds })
+                });
+                showNotification('Group created');
+                document.getElementById('groupModal').style.display = 'none';
+                document.getElementById('groupName').value = '';
+                await renderChatList();
+                if (activeTab === 'groups') renderChatList();
+            } catch(e) { showNotification('Error', 'error'); }
+        };
+        document.getElementById('closeModalBtn').onclick = () => document.getElementById('groupModal').style.display = 'none';
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                activeTab = tab.dataset.tab;
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderChatList();
+            });
+        });
+
+        // Search
+        searchInput.addEventListener('input', () => renderChatList());
+
+        // Send message event
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        // Escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Initialization
+        async function init() {
+            await renderChatList();
+            initSocket();
+        }
+        init();
+    </script>
+</body>
+</html>

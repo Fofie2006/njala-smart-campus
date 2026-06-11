@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Njala Smart Campus | AI & Digital Clearance System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* (your existing CSS – unchanged) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #0F3B2C;
+            --primary-light: #1B5E3F;
+            --secondary: #D4AF37;
+            --secondary-light: #F4D03F;
+            --accent: #E67E22;
+            --dark: #1E2A2E;
+            --light: #F8F9FA;
+            --gray: #6C757D;
+            --white: #FFFFFF;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 16px 40px rgba(0,0,0,0.12);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --transition: all 0.3s ease;
+        }
+        body.dark {
+            --light: #121826;
+            --dark: #EDF2F7;
+            --white: #1E293B;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.3);
+            background: #0F172A;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.5;
+            overflow-x: hidden;
+            transition: var(--transition);
+        }
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        .navbar {
+            background: var(--white);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 16px 0;
+            transition: var(--transition);
+        }
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .logo-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        .btn-outline {
+            padding: 10px 22px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-primary {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-primary:hover, .btn-outline:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .btn-large {
+            padding: 14px 32px;
+            font-size: 1rem;
+        }
+        .hero {
+            padding: 160px 0 80px;
+            background: linear-gradient(135deg, var(--white) 0%, var(--light) 100%);
+        }
+        .hero .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+        .hero-title {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+        .hero-title span {
+            color: var(--primary);
+        }
+        .hero-desc {
+            font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 32px;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .stats {
+            display: flex;
+            gap: 32px;
+        }
+        .stat h3 {
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+        .hero-image img {
+            width: 100%;
+            animation: float 3s ease-in-out infinite;
+            border-radius: 32px;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+        .section-header h2 {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+        }
+        .section-header span {
+            color: var(--primary);
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+        .feature-card {
+            background: var(--white);
+            padding: 28px;
+            border-radius: var(--radius);
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 2rem;
+        }
+        .statistics {
+            padding: 70px 0;
+            background: linear-gradient(120deg, var(--primary), var(--primary-light));
+            color: white;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            text-align: center;
+        }
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+        }
+        .testimonials {
+            padding: 80px 0;
+            background: var(--white);
+        }
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .testimonial-card {
+            background: var(--light);
+            padding: 24px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-sm);
+        }
+        .faq {
+            padding: 80px 0;
+            background: var(--light);
+        }
+        .faq-item {
+            background: var(--white);
+            margin-bottom: 16px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+        .faq-question {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px;
+            max-height: 200px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--white);
+            padding: 32px;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 550px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 40px;
+        }
+        .chatbot {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+        }
+        .chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+        }
+        .chatbot-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 340px;
+            background: var(--white);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            flex-direction: column;
+        }
+        .chatbot-header {
+            background: var(--primary);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .chatbot-messages {
+            height: 320px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .bot-msg, .user-msg {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            max-width: 85%;
+        }
+        .bot-msg {
+            background: var(--light);
+            align-self: flex-start;
+        }
+        .user-msg {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+        }
+        .chatbot-input {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #ddd;
+        }
+        .chatbot-input input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 40px;
+            border: 1px solid #ccc;
+        }
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 48px 0 24px;
+        }
+        @media (max-width: 768px) {
+            .hero .container {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="logo-text">Njala<span style="color:var(--secondary)">Smart</span></div>
+            </div>
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#features">Features</a>
+                <a href="#faq">FAQ</a>
+                <button class="btn-outline" id="loginModalBtn">Login</button>
+                <button class="btn-primary" id="registerModalBtn">Create Account</button>
+                <button id="darkModeToggle" style="background:none; border:none; font-size:1.2rem; cursor:pointer;"><i class="fas fa-moon"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Smart Digital Campus <span>Solution</span> for Njala University</h1>
+                <p class="hero-desc">AI-powered assistant, digital clearance, campus chat & more — all in one secure platform.</p>
+                <div class="hero-buttons">
+                    <button class="btn-primary btn-large registerBtnHero">Create Account</button>
+                    <button class="btn-outline btn-large loginBtnHero">Login</button>
+                </div>
+                <div class="stats">
+                    <div class="stat"><h3>5000+</h3><p>Students</p></div>
+                    <div class="stat"><h3>200+</h3><p>Courses</p></div>
+                    <div class="stat"><h3>100%</h3><p>Digital</p></div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="https://placehold.co/600x400/0F3B2C/white?text=Njala+Campus" alt="Campus">
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features" style="padding:80px 0">
+        <div class="container">
+            <div class="section-header">
+                <h2>Everything you need <span>in one place</span></h2>
+                <p>Modern tools for modern students</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card"><div class="feature-icon"><i class="fas fa-robot"></i></div><h3>AI Assistant</h3><p>English & Krio support, answers fees/timetable questions.</p></div>
+                <div class="feature-card"><div class="feature-icon"><i class="fas fa-comments"></i></div><h3>Njala Connect</h3><p>WhatsApp-style chat, groups, announcements & media.</p></div>
+                <div class="feature-card"><div class="feature-icon"><i class="fas fa-receipt"></i></div><h3>Digital Clearance</h3><p>Upload receipts, get QR verified clearance.</p></div>
+                <div class="feature-card"><div class="feature-icon"><i class="fas fa-chalkboard-user"></i></div><h3>Smart Dashboard</h3><p>GPA, results, timetable & notifications.</p></div>
+                <div class="feature-card"><div class="feature-icon"><i class="fas fa-map"></i></div><h3>Campus Map</h3><p>Navigate halls, library & offices.</p></div>
+                <div class="feature-card"><div class="feature-icon"><i class="fas fa-shield-alt"></i></div><h3>Verified Only</h3><p>School email/matric verification.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="statistics">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-users"></i><div class="stat-number" data-target="5234">0</div><p>Active Students</p></div>
+                <div class="stat-card"><i class="fas fa-book"></i><div class="stat-number" data-target="245">0</div><p>Courses</p></div>
+                <div class="stat-card"><i class="fas fa-comment-dots"></i><div class="stat-number" data-target="12456">0</div><p>Messages Sent</p></div>
+                <div class="stat-card"><i class="fas fa-receipt"></i><div class="stat-number" data-target="3421">0</div><p>Clearances Processed</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header"><h2>Trusted by <span>students</span></h2></div>
+            <div class="testimonial-grid">
+                <div class="testimonial-card"><i class="fas fa-quote-left" style="color:var(--primary)"></i><p>"Njala Smart saved me hours of queueing for clearance! The digital receipt is amazing."</p><h4>— Mohamed B.</h4></div>
+                <div class="testimonial-card"><i class="fas fa-quote-left" style="color:var(--primary)"></i><p>"I use Njala Connect daily to chat with classmates and get lecture updates."</p><h4>— Fatmata S.</h4></div>
+                <div class="testimonial-card"><i class="fas fa-quote-left" style="color:var(--primary)"></i><p>"The AI assistant explains hard topics in Krio. Game changer!"</p><h4>— John K.</h4></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq" class="faq">
+        <div class="container">
+            <div class="section-header"><h2>Frequently <span>Asked Questions</span></h2></div>
+            <div class="faq-item"><div class="faq-question">How do I create an account? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Click "Create Account", fill in your details, and submit. For admin accounts, you need a special admin key.</div></div>
+            <div class="faq-item"><div class="faq-question">Is the fee clearance system secure? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Yes, all payment proofs are reviewed manually, and receipts include QR verification.</div></div>
+            <div class="faq-item"><div class="faq-question">Can lecturers use Njala Connect? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Yes, verified lecturers can broadcast announcements and create class groups.</div></div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;">
+                <div><h3>Njala Smart Campus</h3><p>Empowering education through tech.</p></div>
+                <div><h4>Quick Links</h4><p>Privacy Policy | Terms of Service | Contact</p></div>
+                <div><h4>Contact</h4><p>support@njalasmart.edu.sl</p></div>
+            </div>
+            <hr style="margin: 32px 0 16px; opacity:0.2">
+            <p style="text-align:center">© 2025 Njala Smart Campus — All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span style="float:right; cursor:pointer;" class="closeModal">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <select id="loginRole" required>
+                    <option value="student">Student</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit" class="btn-primary" style="width:100%">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal – UPDATED with smart fields -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span style="float:right; cursor:pointer;" class="closeModal">&times;</span>
+            <h2>Create Account</h2>
+            <form id="registerForm">
+                <input type="text" id="regFullName" placeholder="Full Name" required>
+                <input type="email" id="regEmail" placeholder="Email Address" required>
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <input type="tel" id="regPhone" placeholder="Phone Number (optional)">
+
+                <!-- School Selection -->
+                <select id="regSchool" required>
+                    <option value="">Select School</option>
+                    <option value="Technology">School of Technology</option>
+                    <option value="Education">School of Education</option>
+                    <option value="Agriculture">School of Agriculture</option>
+                </select>
+
+                <!-- Department (depends on School) -->
+                <select id="regDepartment" required disabled>
+                    <option value="">First select a school</option>
+                </select>
+
+                <!-- Programme (depends on Department) -->
+                <select id="regProgramme" required disabled>
+                    <option value="">First select a department</option>
+                </select>
+
+                <!-- Level / Year -->
+                <select id="regLevel" required>
+                    <option value="100">Year 1 (100 Level)</option>
+                    <option value="200">Year 2 (200 Level)</option>
+                    <option value="300">Year 3 (300 Level)</option>
+                    <option value="400">Year 4 (400 Level)</option>
+                </select>
+
+                <!-- Campus -->
+                <select id="regCampus" required>
+                    <option value="Bo">Bo Campus</option>
+                    <option value="Njala">Njala Campus</option>
+                </select>
+
+                <!-- Admin Secret (for creating admin accounts) -->
+                <input type="text" id="regAdminSecret" placeholder="Admin registration key (optional)">
+
+                <button type="submit" class="btn-primary" style="width:100%">Create Account</button>
+                <p style="margin-top:12px; font-size:12px; color:var(--gray);">* Admin key is required to create an admin account.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chatbot Widget -->
+    <div class="chatbot">
+        <div class="chatbot-toggle" id="chatbotToggle"><i class="fas fa-comment-dots"></i></div>
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header"><span><i class="fas fa-robot"></i> AI Assistant</span><span id="closeChat" style="cursor:pointer;">✕</span></div>
+            <div class="chatbot-messages" id="chatMessages"><div class="bot-msg">👋 Hello! Ask me about fees, registration, Krio translation, or campus.</div></div>
+            <div class="chatbot-input"><input type="text" id="chatInput" placeholder="Type your question..."><button id="sendChat"><i class="fas fa-paper-plane"></i></button></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== Dynamic dropdowns for school/department/programme ==========
+        const deptMap = {
+            Technology: ["Computer Science", "BIT", "Information Systems", "Networking"],
+            Education: ["Mathematics Education", "English Education", "Science Education"],
+            Agriculture: ["Crop Science", "Animal Science", "Agricultural Economics"]
+        };
+        const programmeMap = {
+            "Computer Science": "BSc Computer Science",
+            "BIT": "BSc Business Information Technology",
+            "Information Systems": "BSc Information Systems",
+            "Networking": "BSc Networking",
+            "Mathematics Education": "BEd Mathematics Education",
+            "English Education": "BEd English Education",
+            "Science Education": "BEd Science Education",
+            "Crop Science": "BSc Crop Science",
+            "Animal Science": "BSc Animal Science",
+            "Agricultural Economics": "BSc Agricultural Economics"
+        };
+
+        const schoolSelect = document.getElementById('regSchool');
+        const deptSelect = document.getElementById('regDepartment');
+        const progSelect = document.getElementById('regProgramme');
+
+        schoolSelect.addEventListener('change', function() {
+            const school = this.value;
+            deptSelect.innerHTML = '<option value="">Select Department</option>';
+            if (deptMap[school]) {
+                deptMap[school].forEach(dept => {
+                    deptSelect.innerHTML += `<option value="${dept}">${dept}</option>`;
+                });
+                deptSelect.disabled = false;
+            } else {
+                deptSelect.disabled = true;
+                progSelect.disabled = true;
+                progSelect.innerHTML = '<option value="">First select a department</option>';
+            }
+            progSelect.disabled = true;
+            progSelect.innerHTML = '<option value="">First select a department</option>';
+        });
+
+        deptSelect.addEventListener('change', function() {
+            const dept = this.value;
+            if (programmeMap[dept]) {
+                progSelect.innerHTML = `<option value="${programmeMap[dept]}">${programmeMap[dept]}</option>`;
+                progSelect.disabled = false;
+            } else {
+                progSelect.innerHTML = '<option value="">No programme available</option>';
+                progSelect.disabled = true;
+            }
+        });
+
+        // ========== API & AUTH (same as before, extended with new fields) ==========
+        const API_BASE = '/api';
+
+        function showNotification(msg, type = 'success') {
+            let notif = document.createElement('div');
+            notif.innerText = msg;
+            notif.style.position = 'fixed';
+            notif.style.bottom = '20px';
+            notif.style.right = '20px';
+            notif.style.background = type === 'error' ? '#e74c3c' : '#27ae60';
+            notif.style.color = 'white';
+            notif.style.padding = '12px 20px';
+            notif.style.borderRadius = '40px';
+            notif.style.zIndex = '9999';
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+        const loginBtn = document.getElementById('loginModalBtn');
+        const registerBtn = document.getElementById('registerModalBtn');
+        const closeModals = document.querySelectorAll('.closeModal');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        loginBtn.onclick = () => loginModal.style.display = 'flex';
+        registerBtn.onclick = () => registerModal.style.display = 'flex';
+        document.querySelectorAll('.registerBtnHero').forEach(btn => btn.onclick = () => registerModal.style.display = 'flex');
+        document.querySelectorAll('.loginBtnHero').forEach(btn => btn.onclick = () => loginModal.style.display = 'flex');
+        closeModals.forEach(close => close.onclick = () => { loginModal.style.display = 'none'; registerModal.style.display = 'none'; });
+        window.onclick = (e) => { if(e.target === loginModal) loginModal.style.display = 'none'; if(e.target === registerModal) registerModal.style.display = 'none'; };
+
+        // Registration (with all new fields)
+        registerForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const userData = {
+                full_name: document.getElementById('regFullName').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                phone: document.getElementById('regPhone').value || '',
+                school: document.getElementById('regSchool').value,
+                department: document.getElementById('regDepartment').value,
+                programme: document.getElementById('regProgramme').value,
+                level: document.getElementById('regLevel').value,
+                campus: document.getElementById('regCampus').value,
+                admin_secret: document.getElementById('regAdminSecret').value
+            };
+            try {
+                const res = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showNotification(data.message);
+                    registerModal.style.display = 'none';
+                    registerForm.reset();
+                } else {
+                    showNotification(data.error || 'Registration failed', 'error');
+                }
+            } catch (err) {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        };
+
+        // Login
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    showNotification('✅ Login successful! Redirecting...');
+                    setTimeout(() => {
+                        if (data.user.role === 'admin') window.location.href = 'admin.html';
+                        else window.location.href = 'dashboard.html';
+                    }, 1000);
+                } else {
+                    showNotification(data.message || 'Invalid credentials', 'error');
+                }
+            } catch (err) {
+                showNotification('Server error. Please try again.', 'error');
+            }
+        };
+
+        // Dark mode, statistics, FAQ, chatbot – unchanged
+        const darkToggle = document.getElementById('darkModeToggle');
+        darkToggle.onclick = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        };
+        if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+
+        const counters = document.querySelectorAll('.stat-number');
+        const animateNumbers = () => {
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                let count = 0;
+                const update = () => {
+                    count += Math.ceil(target / 50);
+                    if(count < target) { counter.innerText = count; requestAnimationFrame(update); }
+                    else counter.innerText = target;
+                };
+                update();
+            });
+        };
+        const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if(entry.isIntersecting) { animateNumbers(); observer.disconnect(); } }); }, { threshold: 0.3 });
+        observer.observe(document.querySelector('.statistics'));
+
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.querySelector('.faq-question').addEventListener('click', () => item.classList.toggle('active'));
+        });
+
+        const chatToggle = document.getElementById('chatbotToggle');
+        const chatWindow = document.getElementById('chatbotWindow');
+        const closeChat = document.getElementById('closeChat');
+        const sendBtn = document.getElementById('sendChat');
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+
+        chatToggle.onclick = () => chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+        closeChat.onclick = () => chatWindow.style.display = 'none';
+
+        function addBotMessage(text) {
+            let div = document.createElement('div');
+            div.className = 'bot-msg';
+            div.innerHTML = text;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        function addUserMessage(text) {
+            let div = document.createElement('div');
+            div.className = 'user-msg';
+            div.innerText = text;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function getAIResponse(userMsg) {
+            try {
+                const res = await fetch(`${API_BASE}/ai/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userMsg })
+                });
+                const data = await res.json();
+                return data.reply;
+            } catch (err) {
+                return "🤖 Sorry, I'm offline. Please try again later.";
+            }
+        }
+
+        sendBtn.onclick = async () => {
+            let msg = chatInput.value.trim();
+            if(!msg) return;
+            addUserMessage(msg);
+            chatInput.value = '';
+            const reply = await getAIResponse(msg);
+            addBotMessage(reply);
+        };
+        chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendBtn.click(); });
+
+        console.log("Njala Smart Campus Ready | Smart account creation with school/department/programme/level/campus.");
+    </script>
+</body>
+</html>

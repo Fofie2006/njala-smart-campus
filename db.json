@@ -1,0 +1,171 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "full_name": "Demo Student",
+      "matric_number": "NU/CS/001",
+      "student_id": "S001",
+      "email": "student@njala.edu",
+      "password": "$2a$10$QLPMLysIUDH1orIQrJMb8.gpTO.hAlFBOiSSZTnLzhjL1y9nXUpCG",
+      "department": "Computer Science",
+      "level": "200",
+      "role": "student",
+      "is_verified": 1,
+      "created_at": "2026-05-02T20:39:31.319Z"
+    },
+    {
+      "id": 2,
+      "full_name": "Second Student",
+      "matric_number": "NU/CS/002",
+      "student_id": "S002",
+      "email": "second@njala.edu",
+      "password": "$2a$10$QLPMLysIUDH1orIQrJMb8.gpTO.hAlFBOiSSZTnLzhjL1y9nXUpCG",
+      "department": "Computer Science",
+      "level": "200",
+      "role": "student",
+      "is_verified": 1,
+      "created_at": "2026-05-03T12:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "full_name": "alusiney Sheriff",
+      "matric_number": "23",
+      "student_id": "100",
+      "email": "asheriff803@gmail.com",
+      "password": "$2a$10$5WZOq4D20eda6bw2Nc/.M.ODVtCzX6XEQAhwqwZX3qvAW5QDJjcrO",
+      "department": "Social Sciences",
+      "level": "400",
+      "phone": "7254378",
+      "role": "student",
+      "is_verified": 0,
+      "created_at": "2026-05-03T13:12:20.846Z"
+    },
+    {
+      "id": 4,
+      "full_name": "hassan kamara",
+      "student_id": "647",
+      "email": "hsheriff803@gmail.com",
+      "password": "$2a$10$LzWB3VWwOHId14ePfdNKb.y.L/mn/8Dom33EHW9Yh1Yr/gvjrce.i",
+      "department": "Social Sciences",
+      "phone": "7364389",
+      "role": "student",
+      "is_verified": 0,
+      "created_at": "2026-05-04T23:37:59.512Z"
+    },
+    {
+      "id": 5,
+      "full_name": "System Admin",
+      "matric_number": "ADMIN001",
+      "student_id": "ADMIN",
+      "email": "admin@njala.edu",
+      "password": "$2a$10$QLPMLysIUDH1orIQrJMb8.gpTO.hAlFBOiSSZTnLzhjL1y9nXUpCG",
+      "department": "Administration",
+      "level": "N/A",
+      "phone": "",
+      "role": "admin",
+      "is_verified": 1,
+      "created_at": "2026-05-06T12:00:00.000Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": 1,
+      "from": 3,
+      "to": 1,
+      "text": "hi",
+      "timestamp": "2026-05-03T13:12:51.640Z"
+    },
+    {
+      "id": 2,
+      "from": 3,
+      "to": 4,
+      "text": "hi",
+      "status": "read",
+      "timestamp": "2026-05-06T11:28:51.656Z"
+    },
+    {
+      "id": 3,
+      "from": 3,
+      "to": 4,
+      "text": "wassup",
+      "status": "read",
+      "timestamp": "2026-05-06T21:53:37.607Z"
+    },
+    {
+      "id": 4,
+      "from": 4,
+      "to": 3,
+      "text": "gud bro",
+      "status": "read",
+      "timestamp": "2026-05-06T21:54:03.833Z"
+    },
+    {
+      "id": 5,
+      "from": 3,
+      "to": 4,
+      "text": "hi",
+      "status": "read",
+      "timestamp": "2026-05-10T23:00:09.499Z"
+    }
+  ],
+  "clearance": [
+    {
+      "id": 1,
+      "student_id": 3,
+      "amount": 6228,
+      "payment_proof": "/uploads/1778066796378-IMG-20260106-WA0025.jpg",
+      "transaction_id": "62327856154",
+      "status": "pending",
+      "created_at": "2026-05-06T11:26:36.395Z"
+    },
+    {
+      "id": 2,
+      "student_id": 3,
+      "amount": 628,
+      "payment_proof": "/uploads/1778070626888-IMG-20260106-WA0024.jpg",
+      "transaction_id": "jkgu8r40921-",
+      "status": "pending",
+      "created_at": "2026-05-06T12:30:26.891Z"
+    }
+  ],
+  "nextId": {
+    "users": 6,
+    "messages": 6,
+    "clearance": 3,
+    "groups": 2,
+    "groupMessages": 1,
+    "sosAlerts": 1,
+    "announcements": 2,
+    "lostfound": 1
+  },
+  "groups": [
+    {
+      "id": 1,
+      "name": "exam",
+      "createdBy": 3,
+      "members": [
+        3,
+        2
+      ],
+      "created_at": "2026-05-04T23:12:45.084Z"
+    }
+  ],
+  "groupMessages": [],
+  "sosAlerts": [],
+  "announcements": [
+    {
+      "id": 1,
+      "title": "exam",
+      "content": "start tomorrow",
+      "target": "all",
+      "department": null,
+      "created_at": "2026-05-06T21:55:44.225Z"
+    }
+  ],
+  "lostfound": [],
+  "settings": {
+    "defaultFee": 4200000,
+    "academicSession": "2024/2025",
+    "enableNjalaConnect": true
+  }
+}
